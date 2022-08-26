@@ -55,7 +55,9 @@ def create_app(test_config=None):
             abort(404)
 
         category_dict = {cat.id: cat.type for cat in category_list}
-        return jsonify(category_dict)
+        return jsonify({
+            'success': True,
+            'categories': category_dict})
 
 
     """
@@ -83,6 +85,7 @@ def create_app(test_config=None):
         
 
         return jsonify({
+            'success': True,
             'questions': requested_qustions,
             'totalQuestions': len(questions_list),
             'categories': categories_dict,
@@ -115,7 +118,7 @@ def create_app(test_config=None):
     category, and difficulty score.
 
     TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
+    the form will clear and the question will appearpunduits at the end of the last page
     of the questions list in the "List" tab.
     """
     @app.route('/questions', methods=['POST'])
@@ -148,19 +151,24 @@ def create_app(test_config=None):
     only question that include that string within their question.
     Try using the word "title" to start.
     """
-    @app.route('/questions', methods=['POST'])
+    @app.route('/questions/search', methods=['POST'])
     def search_questions():
-        try:
-            search_term = request.json.get("searchTerm")
-            results = Question.query.filter(Question.question.ilike(f"%{search_term}%"))
-            result_questions = [question.format() for question in results]
-            return jsonify({
-                'questions': result_questions,
-                'totalQuestions': len(results),
-                'currentCategory': None
-                })
-        except:
-            abort(422)
+        search_term = request.json.get("searchTerm")
+        if search_term is None:
+            return abort(422)
+        results = Question.query.filter(Question.question.ilike(f"%{search_term}%")).all()
+        results_paginated = paginated_questions(request, results)
+        result_category = [question['category'] for question in results_paginated]
+        current_category = result_category[0] if len(result_category) > 0 else None
+
+        return jsonify({
+            'success': True,
+            'questions': results_paginated,
+            'totalQuestions': len(results),
+            'currentCategory': current_category
+            })
+
+
 
     """
     @TODO:
@@ -180,14 +188,15 @@ def create_app(test_config=None):
                 cate_questions_list = [question.format() for question in cate_questions]
 
                 return jsonify({
+                    'success': True,
                     'questions': cate_questions_list,
                     'totalQuestions': len(cate_questions_list),
                     'currentCategory': category.type
                 })
             except:
-                abort(404)
+                abort(422)
         else:
-            abort(422)
+            abort(404)
 
     """
     @TODO:
@@ -210,9 +219,10 @@ def create_app(test_config=None):
         try: 
             ready_questions = [question for question in questions if question.category == category.id ]
             random_choice = random.choice(ready_questions)
-            randomized_question = ready_questions[random_choice].format()
+            randomized_question = random_choice.format()
 
             return jsonify({
+                'success': True,
                 'question': randomized_question
             })
         except:
@@ -227,6 +237,7 @@ def create_app(test_config=None):
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({
+            'success':False,
             'error': 400,
             'message': 'bad request'
         }), 400        
@@ -234,6 +245,7 @@ def create_app(test_config=None):
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
+            'success':False,
             'error': 404,
             'message':'resource not found',
         }), 404
@@ -241,6 +253,7 @@ def create_app(test_config=None):
     @app.errorhandler(405)
     def unallowed_method(error):
         return jsonify({
+            'success':False,
             'error': 405,
             'message':'method not allowed',
         }), 405
@@ -248,6 +261,7 @@ def create_app(test_config=None):
     @app.errorhandler(422)
     def unprocessable(error):
         return jsonify({
+            'success':False,
             'error': 422,
             'message':'unprocessable',
         }), 422

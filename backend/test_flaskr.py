@@ -25,14 +25,14 @@ class TriviaTestCase(unittest.TestCase):
             self.db.init_app(self.app)
             # create all tables
             self.db.create_all()
-    
+
     def tearDown(self):
         """Executed after reach test"""
         pass
 
     """
     TODO
-    Write at least one test for each test for successful operation and for expected errors.
+    Write at least one test for each test for successful operation and for expected errors.  # noqa E501
     """
     # Test pagination and the '/questions' endpoint
     def test_get_paginated_books(self):
@@ -80,23 +80,22 @@ class TriviaTestCase(unittest.TestCase):
 
     # Test POST new question
     def test_create_new_question(self):
-        valid_new_question = {"question": "Who invented the telephone", "answer": "Alexander Graham", "category": "4", "difficulty":4}
+        valid_new_question = {"question": "Who invented the telephone", "answer": "Alexander Graham", "category": "4", "difficulty": 4}  # noqa E501
         res = self.client().post("/questions", json=valid_new_question)
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
 
-
     def test_422_if_question_creation_fails(self):
-        invalid_new_question = {"question": "", "answer": "", "category": '', 'difficulty':4}
+        invalid_new_question = {"question": "", "answer": "", "category": '', 'difficulty': 4}  # noqa E501
         res = self.client().post("/questions", json=invalid_new_question)
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data["success"], False)
 
-    # Test POST on question search 
+    # Test POST on question search
     def test_get_question_search_with_results(self):
-        res = self.client().post("/questions/search", json={"searchTerm":"find"})
+        res = self.client().post("/questions/search", json={"searchTerm": "find"})  # noqa E501
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -105,9 +104,9 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(len(data['questions']), 1)
 
     def test_get_question_search_without_results(self):
-        res = self.client().post('/questions/search', json={'searchTerm': 'kenya'})
+        res = self.client().post('/questions/search', json={'searchTerm': 'kenya'})  # noqa E501
         data = json.loads(res.data)
-                
+
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertEqual(data['totalQuestions'], 0)
@@ -153,7 +152,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 400)
         self.assertEqual(data['success'], False)
-    
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
